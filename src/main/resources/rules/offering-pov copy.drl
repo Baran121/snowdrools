@@ -1,0 +1,49 @@
+import org.example.model.siteOfferings;
+import com.snowflake.snowpark_java.types.Variant;
+import java.util.Map;
+
+global org.example.model.CustomerType customerType;
+
+dialect "mvel"
+
+rule "Regular1"
+    when
+        $customer : siteOfferings(offerings == "KITCHEN SPECIALTY" && offeringType == "Regular") 
+        
+    then                
+        Map obj = $customer.getCSA();
+
+        Integer roomCount = obj.containsKey("Room Count") ? (Integer) obj["Room Count"] : 1;
+        Integer occRate = obj.containsKey("Occ. Rate")  ? (Integer) obj["Occ. Rate"] : 100;
+        
+        customerType.setCustomerType($customer.getOfferingsEUC() * roomCount * occRate);
+end 
+
+rule "Motels and Regular"
+    when
+        $customer : siteOfferings(offerings == "KITCHEN SPECIALTY" && offeringType == "Regular") 
+        
+    then                
+        Map obj = $customer.getCSA();
+
+        Integer roomCount = obj.containsKey("Room Count") ? (Integer) obj["Room Count"] : 1;
+        Integer occRate = obj.containsKey("Occ. Rate")  ? (Integer) obj["Occ. Rate"] : 100;
+        
+        customerType.setCustomerType($customer.getOfferingsEUC() * roomCount * occRate);
+end 
+
+
+rule "Asset and Boiler"
+    when
+        $customer : siteOfferings(offeringType == "Asset-Boiler") 
+        
+    then                
+        Map obj = $customer.getCSA();
+
+        Integer boilerCount = obj.containsKey("Boiler Count") ? (Integer) obj["Boiler Count"] : 1;
+        Integer sizeA = obj.containsKey("Size A")  ? (Integer) obj["Size A"] : 1;
+        Integer sizeB = obj.containsKey("Size B")  ? (Integer) obj["Size B"] : 1;
+        Integer res= ((sizeA * boilerCount ) + (sizeB * boilerCount )) * boilerCount;
+        
+        customerType.setCustomerType( res);
+end 
